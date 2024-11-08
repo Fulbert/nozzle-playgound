@@ -1,30 +1,43 @@
+import { ref } from 'vue';
 import * as k from './constants.ts'
 
-export class NozzlePlate {
-    public nozzlesCoordinates: number[][]
+export const useNozzlePlate = () => {    
 
-    constructor () {
-        this.nozzlesCoordinates = this.generateNozzlesCoordinates()
-    };
+    // Generate a mask for nozzles address
+    const generateNozzleMask = () => {
+        const mask: boolean[] = [];
+
+        for(let n = 0; n < k.numberOfAddress; n++){
+            let exist = true;
+            
+            if (n < k.stitchZones[0] && n % 4 !== 0)
+                exist = false
+            if (n >= k.stitchZones[0] && n < k.stitchZones[1] && n % 2 !== 0)
+                exist = false
+            if (n >= k.stitchZones[1] && n < k.stitchZones[2] && (n % 4)-3 === 0)
+                exist = false
+
+            const rightStitchZones = k.stitchZones.map((z) => k.numberOfAddress - z);
+            if (n >= rightStitchZones[2] && n < rightStitchZones[1] && (n % 4) === 0)
+                exist = false
+            if (n >= rightStitchZones[1] && n < rightStitchZones[0] && n % 2 === 0)
+                exist = false
+            if (n >= rightStitchZones[0] && (n % 4)-3 !== 0)
+                exist = false
+
+
+            mask.push(exist)
+        }
+
+        console.log(`Generated ${mask.length} address mask`)
+
+        return mask
+    }
     
-    // rotate nozzle coordinates
-    public rotate = (alpha: number) => {
-        this.nozzlesCoordinates = this.nozzlesCoordinates.map(c => this.rotatePoint(c, alpha))
-    }
-
-    // Generate line based on nozzle lateral position
-    public generateLine = () => {
-        return this.nozzlesCoordinates.map(n => n[0])
-    }
-
-    public reset = () => {
-        this.nozzlesCoordinates = this.generateNozzlesCoordinates()
-    }
-
-    private generateNozzlesCoordinates = (): number[][] => {
+    const generateNozzlesCoordinates = (): number[][] => {
         const coordinates = [];
     
-        const nozzleMask = this.generateNozzleMask();
+        const nozzleMask = generateNozzleMask();
         
         for(let n = 0; n < k.numberOfAddress; n++){
             // Exit if nozzle doesn't exist
@@ -63,38 +76,23 @@ export class NozzlePlate {
         return coordinates
     }
 
-    // Generate a mask for nozzles address
-    private generateNozzleMask = () => {
-        const mask: boolean[] = [];
-
-        for(let n = 0; n < k.numberOfAddress; n++){
-            let exist = true;
-            
-            if (n < k.stitchZones[0] && n % 4 !== 0)
-                exist = false
-            if (n >= k.stitchZones[0] && n < k.stitchZones[1] && n % 2 !== 0)
-                exist = false
-            if (n >= k.stitchZones[1] && n < k.stitchZones[2] && (n % 4)-3 === 0)
-                exist = false
-
-            const rightStitchZones = k.stitchZones.map((z) => k.numberOfAddress - z);
-            if (n >= rightStitchZones[2] && n < rightStitchZones[1] && (n % 4) === 0)
-                exist = false
-            if (n >= rightStitchZones[1] && n < rightStitchZones[0] && n % 2 === 0)
-                exist = false
-            if (n >= rightStitchZones[0] && (n % 4)-3 !== 0)
-                exist = false
-
-
-            mask.push(exist)
-        }
-
-        console.log(`Generated ${mask.length} address mask`)
-
-        return mask
+    const nozzlesCoordinates = ref<number[][]>(generateNozzlesCoordinates());
+    
+    // rotate nozzle coordinates
+    const rotate = (alpha: number) => {
+        nozzlesCoordinates.value = nozzlesCoordinates.value.map(c => rotatePoint(c, alpha))
     }
 
-    private rotatePoint = (coord = [0,0], alpha = 0, center = [0,0]) => {
+    // Generate line based on nozzle lateral position
+    const generateLine = () => {
+        return nozzlesCoordinates.value.map(n => n[0])
+    }
+
+    const reset = () => {
+        nozzlesCoordinates.value = generateNozzlesCoordinates()
+    }
+
+    const rotatePoint = (coord = [0,0], alpha = 0, center = [0,0]) => {
         const dX = coord[0] - center[0];
         const dY = coord[1] - center[1];
 
@@ -103,4 +101,6 @@ export class NozzlePlate {
             center[1] + dX * Math.sin(alpha) + dY * Math.cos(alpha)
         ]
     }
+
+    return {nozzlesCoordinates, rotate, reset }
 }

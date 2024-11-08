@@ -1,38 +1,46 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { NozzlePlate } from '../head.ts'
+import { ref, onMounted, watch } from 'vue'
+
+const {nozzles} = defineProps<{
+  nozzles: number[][]
+}>()
 
 const canvasId = 'canvasEl'
 
-const nozzlePlates = [new NozzlePlate()]
-
 const context = ref<CanvasRenderingContext2D>()
+const canvas = ref<HTMLCanvasElement>()
 const zoom = ref(15);
 const offset = ref([50,50])
 const nozzleSize = ref(1.5);
 const dropSize = ref(0.3);
 
 onMounted(() => {
-  const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-
-  nozzlePlates[0].rotate(0);
+  canvas.value = document.getElementById(canvasId) as HTMLCanvasElement;
 
   if (canvas) {
-    context.value = canvas.getContext('2d') || undefined;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    context.value = canvas.value.getContext('2d') || undefined;
+    canvas.value.width = window.innerWidth;
+    canvas.value.height = window.innerHeight -100;
     
     drawNozzlePlate();
     drawLine()
   }
 })
 
+watch(() => nozzles, () => {
+  if (context.value === undefined || canvas.value === undefined) return
+
+  context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
+  drawNozzlePlate();
+  drawLine()
+})
+
 const drawNozzlePlate = () => {
-  nozzlePlates[0].nozzlesCoordinates.forEach(n => drawNozzle(n));
+  nozzles.forEach(n => drawNozzle(n));
 }
 
 const drawLine = () => {
-  const drops = nozzlePlates[0].generateLine()
+  const drops = nozzles.map(n => n[0])
   drops.forEach(d => drawDrop(d))
 }
 
@@ -55,7 +63,7 @@ const drawDrop = (d: number) => {
 
   ctx.beginPath()
   ctx.arc(d * zoom.value + offset.value[0], 
-    nozzlePlates[0].nozzlesCoordinates[nozzlePlates[0].nozzlesCoordinates.length - 1][1] * zoom.value + offset.value[1] * 2,
+    nozzles[nozzles.length - 1][1] * zoom.value + offset.value[1] * 2,
     dropSize.value, 0, Math.PI * 2, true);
   ctx.fill();
 }
