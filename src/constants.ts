@@ -10,9 +10,11 @@ export const numberOfGroup = colGroupOrder.length; // groups of nozzle
 export const nozzlesPerGroup = nozzlesPerCol / numberOfGroup // nozzle
 
 export const nozzlePlateZoneGap = 5; // mm - distance between the two groups of nozzles
-export const skew = 1.3123; // mm
 export const inch = 25.4; // mm
 export const pixelSize = inch / resolution; // mm
 export const nozzleXDistance = pixelSize; // mm
-export const nozzleYDistance = nozzleXDistance * 60 // mm
+export const nozzleYDistance = 0.2963 // mm
 export const groupSize = nozzlesPerGroup * nozzleYDistance;
+export const skew = 1.3123; // mm
+export const skewPerNozzle = skew / 68 / 32;
+export const gap = 2.6458;

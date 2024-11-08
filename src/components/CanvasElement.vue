@@ -6,7 +6,7 @@ const canvasId = 'canvasEl'
 
 const nozzles = ref(generateNozzlesCoordinates())
 const context = ref<CanvasRenderingContext2D>()
-const zoom = ref(4);
+const zoom = ref(15);
 const offset = ref([10,10])
 const nozzleSize = ref(1.5);
 const dropSize = ref(0.3);

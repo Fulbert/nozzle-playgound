@@ -13,8 +13,6 @@ export const generateNozzlesCoordinates = (stitch = 0, angle = 0): number[][] =>
         // xCoord is the nozzle id multiplied by the size of a pixel
         const xCoord = n * k.nozzleXDistance
 
-        
-
         // Column of the nozzle 
         // There's 32 nozzles per column
         const colPosition = ((n % k.nozzlesPerCol) * k.nozzleYDistance) / k.numberOfGroup
@@ -25,13 +23,16 @@ export const generateNozzlesCoordinates = (stitch = 0, angle = 0): number[][] =>
         const mod = (n % k.nozzlesPerCol) % k.numberOfGroup;
         const group = k.colGroupOrder[mod]
         let groupPosition =  group * k.groupSize
-        groupPosition += group > 1 ? 7 : 0 // add 10 to second row of nozzle
+        groupPosition += group > 1 ? k.gap : 0 // add gap to second row of nozzle
 
-        // yCoord is the position in the group + the position of the group
-        const yCoord = groupPosition + colPosition
+        // Calculate skew
+        const skew = n * k.skewPerNozzle
+
+        // yCoord is the position in the group + the position of the group + skew
+        const yCoord = groupPosition + colPosition + skew
 
         coordinates.push([
-            xCoord * 4, 
+            xCoord, 
             yCoord
         ]);
     }
