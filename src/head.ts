@@ -33,7 +33,7 @@ export const useNozzlePlate = () => {
 
         return mask
     }
-    
+
     const generateNozzlesCoordinates = (): number[][] => {
         const coordinates = [];
     
@@ -84,9 +84,10 @@ export const useNozzlePlate = () => {
     }
 
     // Generate line based on nozzle lateral position
+    /**
     const generateLine = () => {
         return nozzlesCoordinates.value.map(n => n[0])
-    }
+    } */
 
     const reset = () => {
         nozzlesCoordinates.value = generateNozzlesCoordinates()

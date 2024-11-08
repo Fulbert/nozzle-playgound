@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 
-const {nozzles} = defineProps<{
-  nozzles: number[][]
+const {nozzles, zoom} = defineProps<{
+  nozzles: number[][],
+  zoom: number
 }>()
 
 const canvasId = 'canvasEl'
 
 const context = ref<CanvasRenderingContext2D>()
 const canvas = ref<HTMLCanvasElement>()
-const zoom = ref(15);
 const offset = ref([50,50])
 const nozzleSize = ref(1.5);
 const dropSize = ref(0.3);
@@ -27,13 +27,20 @@ onMounted(() => {
   }
 })
 
-watch(() => nozzles, () => {
+watch(() => nozzles, () => draw())
+watch(() => zoom, () => draw())
+
+const clear = () => {
   if (context.value === undefined || canvas.value === undefined) return
 
   context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
+}
+
+const draw = () => {
+  clear()
   drawNozzlePlate();
   drawLine()
-})
+}
 
 const drawNozzlePlate = () => {
   nozzles.forEach(n => drawNozzle(n));
@@ -50,8 +57,8 @@ const drawNozzle = (coord = [0,0]) => {
 
   ctx.beginPath();
   ctx.arc(
-    coord[0] * zoom.value + offset.value[0], 
-    coord[1] * zoom.value + offset.value[1],
+    coord[0] * zoom + offset.value[0], 
+    coord[1] * zoom + offset.value[1],
     nozzleSize.value, 
     0, Math.PI * 2, true);
   ctx.fill();
@@ -62,9 +69,9 @@ const drawDrop = (d: number) => {
   const ctx = context.value
 
   ctx.beginPath()
-  ctx.arc(d * zoom.value + offset.value[0], 
-    nozzles[nozzles.length - 1][1] * zoom.value + offset.value[1] * 2,
-    dropSize.value, 0, Math.PI * 2, true);
+  ctx.arc(d * zoom + offset.value[0], 
+    nozzles[nozzles.length - 1][1] * zoom + offset.value[1] * 2,
+    dropSize.value * zoom / 20, 0, Math.PI * 2, true);
   ctx.fill();
 }
 </script>
