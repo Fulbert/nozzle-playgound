@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import * as k from './constants.ts'
 
-export const useNozzlePlate = () => {    
+export const useNozzlePlate = (_position = 0) => {    
 
     // Generate a mask for nozzles address
     const generateNozzleMask = () => {
@@ -77,10 +77,22 @@ export const useNozzlePlate = () => {
     }
 
     const nozzlesCoordinates = ref<number[][]>(generateNozzlesCoordinates());
+    const position = ref(_position);
+
+    
     
     // rotate nozzle coordinates
     const rotate = (alpha: number) => {
         nozzlesCoordinates.value = nozzlesCoordinates.value.map(c => rotatePoint(c, alpha))
+    }
+
+    const moveX = (move: number) => {
+        nozzlesCoordinates.value = nozzlesCoordinates.value.map(c => [c[0] + move, c[1]])
+    }
+
+    // Adjust stitch
+    const adjustStitch = (move: number) => {
+        moveX(move)
     }
 
     // Generate line based on nozzle lateral position
@@ -103,5 +115,7 @@ export const useNozzlePlate = () => {
         ]
     }
 
-    return {nozzlesCoordinates, rotate, reset }
+    moveX(position.value * ( k.nozzlesPerHead + k.stitchZones[2]) * k.pixelSize)
+
+    return {nozzlesCoordinates, adjustStitch, position, rotate, reset }
 }
