@@ -14,7 +14,7 @@ const wheel = (ev: WheelEvent) => {
     heads.value[0].rotate(ev.deltaY / 100000);
   if (ev.ctrlKey) {
     ev.preventDefault()
-    zoom.value += ev.deltaY / 1000;
+    zoom.value += ev.deltaY / 100;
   }
 }
 

@@ -69,10 +69,15 @@ const drawDrop = (d: number) => {
   const ctx = context.value
 
   ctx.beginPath()
+  
+  ctx.moveTo(d * zoom + offset.value[0], nozzles[nozzles.length - 1][1] * zoom + offset.value[1] * 2);
+  ctx.lineTo(d * zoom + offset.value[0], nozzles[nozzles.length - 1][1] * zoom + offset.value[1] * 2 + 100);
+  ctx.stroke();
+  /**
   ctx.arc(d * zoom + offset.value[0], 
     nozzles[nozzles.length - 1][1] * zoom + offset.value[1] * 2,
     dropSize.value * zoom / 20, 0, Math.PI * 2, true);
-  ctx.fill();
+  ctx.fill(); */
 }
 </script>
 
