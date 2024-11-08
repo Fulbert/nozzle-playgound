@@ -105,7 +105,11 @@ export const useNozzlePlate = (_position = 0) => {
         nozzlesCoordinates.value = generateNozzlesCoordinates()
     }
 
-    const rotatePoint = (coord = [0,0], alpha = 0, center = [0,0]) => {
+    const rotatePoint = (
+        coord = [0,0], 
+        alpha = 0, 
+        center = [22,10]
+    ) => {
         const dX = coord[0] - center[0];
         const dY = coord[1] - center[1];
 

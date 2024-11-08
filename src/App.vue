@@ -8,6 +8,8 @@ const {heads, getNozzles} = usePrintbar();
 const zoom = ref(10)
 
 const wheel = (ev: WheelEvent) => {
+  if (ev.shiftKey)
+    heads.value[0].adjustStitch(ev.deltaY / 10000);
   if (ev.altKey)
     heads.value[0].rotate(ev.deltaY / 100000);
   if (ev.ctrlKey) {
