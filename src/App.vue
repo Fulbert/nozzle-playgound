@@ -8,17 +8,26 @@ const {heads, getNozzles} = usePrintbar();
 const zoom = ref(10)
 const offset = ref([0,0])
 const dragStart = [0,0]
+let eventTimeout: number;
+let wheelDelta = 0;
 
 const wheel = (ev: WheelEvent) => {
   ev.preventDefault();
 
-  if (ev.shiftKey)
-    heads.value[0].adjustStitch(ev.deltaY / 10000);
-  if (ev.altKey)
-    heads.value[0].rotate(ev.deltaY / 100000);
-  if (ev.ctrlKey) {
-    zoom.value += ev.deltaY / 100;
-  }
+  wheelDelta += ev.deltaY,
+
+  clearTimeout(eventTimeout);
+
+  eventTimeout = setTimeout(() => {
+    if (ev.shiftKey)
+      heads.value[0].adjustStitch(wheelDelta / 10000);
+    if (ev.altKey)
+      heads.value[0].rotate(wheelDelta / 100000);
+    if (ev.ctrlKey) {
+      zoom.value += wheelDelta / 100;
+    }
+    wheelDelta = 0
+  }, 100);
 }
 
 const moveStart = (ev: DragEvent) => {

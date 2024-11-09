@@ -13,6 +13,7 @@ const context = ref<CanvasRenderingContext2D>()
 const canvas = ref<HTMLCanvasElement>()
 const nozzleSize = ref(1.5);
 const dropSize = ref(0.3);
+const printLength = ref(10); // pixels
 
 onMounted(() => {
   canvas.value = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -22,8 +23,7 @@ onMounted(() => {
     canvas.value.width = window.innerWidth;
     canvas.value.height = window.innerHeight -100;
     
-    drawNozzlePlate();
-    drawLine()
+    draw()
   }
 })
 
@@ -38,6 +38,7 @@ const clear = () => {
 }
 
 const draw = () => {
+  console.log('draw')
   clear()
   drawNozzlePlate();
   drawLine()
@@ -68,17 +69,16 @@ const drawNozzle = (coord = [0,0]) => {
 const drawDrop = (d: number) => {
   if (context.value === undefined) return
   const ctx = context.value
-
   ctx.beginPath()
-  
+  /**
   ctx.moveTo(d * zoom + offset[0], nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10);
   ctx.lineTo(d * zoom + offset[0], nozzles[nozzles.length - 1][1] * zoom + offset[1] + 100);
-  ctx.stroke();
-  /**
+  ctx.stroke(); */
+  for ()
   ctx.arc(d * zoom + offset[0], 
-    nozzles[nozzles.length - 1][1] * zoom + offset[1] * 2,
+    nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10,
     dropSize.value * zoom / 20, 0, Math.PI * 2, true);
-  ctx.fill(); */
+  ctx.fill();
 }
 </script>
 
