@@ -1,7 +1,7 @@
 import { numberOfAddress, stitchZones } from "./constants"
 
 export const stitch = (i: number) => {
-    return i % 8 === 0 && isInStitch(i)
+    return i % 8 === 0 //&& isInStitch(i)
 }
 
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import * as masks from '../masks'
+import { nozzle } from '../head';
 
 const {nozzles, zoom, offset} = defineProps<{
-  nozzles: number[][],
+  nozzles: nozzle[],
   zoom: number;
   offset: number[]
 }>()
@@ -52,12 +53,7 @@ const drawNozzlePlate = () => {
 }
 
 const drawPrint= () => {
-  const nozzlesX = nozzles.map((n) => n[0])
-
-  nozzlesX.reduce((p, c, _i, _a) => {
-    if(p > c) console.log(p, c, _i)
-    return c
-  }, 0)
+  const nozzlesX = nozzles.filter(n => n[2]).map((n) => n[0])
 
   for (let i = 0 ; i < printLength.value ; i++) {
     drawLine(nozzlesX, i, masks.stitch)
@@ -70,7 +66,9 @@ const drawLine = (nozzlesX: number[], line: number, mask: (i: number) => boolean
   drops.forEach(d => drawDrop(d, line))
 }
 
-const drawNozzle = (coord = [0,0]) => {
+const drawNozzle = (coord: nozzle) => {
+  if (coord[2]) return
+
   if (context.value === undefined) return
   const ctx = context.value;
 

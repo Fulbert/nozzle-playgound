@@ -4,7 +4,7 @@ import * as k from './constants.ts'
 export const useNozzlePlate = (_position = 0) => {  
     const position = ref(_position);
 
-    const nozzlesCoordinates = ref<number[][]>(generateNozzlesCoordinates(position.value));
+    const nozzlesCoordinates = ref<nozzle[]>(generateNozzlesCoordinates(position.value));
 
     const moveX = (move: number) => {
         nozzlesCoordinates.value = moveNozzles([move,0], nozzlesCoordinates.value)
@@ -25,16 +25,17 @@ export const useNozzlePlate = (_position = 0) => {
     }
 
     const rotatePoint = (
-        coord = [0,0], 
+        coord: nozzle, 
         alpha = 0, 
         center = [22,10]
-    ) => {
+    ): nozzle => {
         const dX = coord[0] - center[0];
         const dY = coord[1] - center[1];
 
         return [
             center[0] + dX * Math.cos(alpha) - dY * Math.sin(alpha),
-            center[1] + dX * Math.sin(alpha) + dY * Math.cos(alpha)
+            center[1] + dX * Math.sin(alpha) + dY * Math.cos(alpha),
+            coord[2]
         ]
     }
 
@@ -43,15 +44,12 @@ export const useNozzlePlate = (_position = 0) => {
     return {nozzlesCoordinates, adjustStitch, position, rotate, reset }
 }
 
-const generateNozzlesCoordinates = (_position: number): number[][] => {
-    let coordinates = [];
+const generateNozzlesCoordinates = (_position: number): nozzle[] => {
+    let coordinates: nozzle[] = [];
 
     const nozzleMask = generateNozzleMask();
     
     for(let n = 0; n < k.numberOfAddress; n++){
-        // Exit if nozzle doesn't exist
-        if(!nozzleMask[n])
-            continue
 
         // xCoord is the nozzle id multiplied by the size of a pixel
         const xCoord = n * k.nozzleXDistance
@@ -76,7 +74,8 @@ const generateNozzlesCoordinates = (_position: number): number[][] => {
 
         coordinates.push([
             xCoord, 
-            yCoord
+            yCoord,
+            !nozzleMask[n]
         ]);
     }
 
@@ -118,7 +117,9 @@ const generateNozzleMask = () => {
     return mask
 }
 
-
-const moveNozzles = (move: number[], coordinates: number[][]) => {
-    return coordinates.map(c => [c[0] + move[0], c[1] + move[1]])
+const moveNozzles = (move: number[], coordinates: nozzle[]): nozzle[] => {
+    return coordinates.map(c => [c[0] + move[0], c[1] + move[1], c[2]])
 }
+
+
+export type nozzle = [number, number, boolean]
