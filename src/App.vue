@@ -3,10 +3,10 @@ import { ref } from 'vue';
 import CanvasElement from './components/CanvasElement.vue'
 import { usePrintbar } from './printbar';
 
-const {heads, getNozzles} = usePrintbar();
+const {heads, getNozzles, getNozzle} = usePrintbar();
 
 const zoom = ref(10)
-const offset = ref([0,0])
+const offset = ref([10,10])
 const dragStart = [0,0]
 let eventTimeout: number;
 let wheelDelta = 0;
@@ -27,7 +27,7 @@ const wheel = (ev: WheelEvent) => {
       zoom.value += wheelDelta / 100;
     }
     wheelDelta = 0
-  }, 100);
+  }, 50);
 }
 
 const moveStart = (ev: DragEvent) => {
@@ -42,10 +42,23 @@ const moveEnd = (ev: DragEvent) => {
   ]
 }
 
+const click = (ev: MouseEvent) => {
+  if (ev.currentTarget === null) return
+
+  const rect = (ev.currentTarget as HTMLCanvasElement).getBoundingClientRect()
+
+  const coord = [
+    (ev.x - rect.left - offset.value[0])/zoom.value,
+    (ev.y - rect.top - offset.value[1])/zoom.value
+  ]
+
+  getNozzle(coord)
+}
+
 </script>
 
 <template>
   <div @wheel="wheel" @dragstart="moveStart" @dragend="moveEnd" draggable="true">
-    <CanvasElement :nozzles="getNozzles" :zoom="zoom" :offset="offset" />
+    <CanvasElement :nozzles="getNozzles" :zoom="zoom" :offset="offset" @click="click" />
   </div>
 </template>

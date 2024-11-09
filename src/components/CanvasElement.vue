@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import * as masks from '../masks'
 
 const {nozzles, zoom, offset} = defineProps<{
   nozzles: number[][],
@@ -12,9 +13,9 @@ const canvasId = 'canvasEl'
 const context = ref<CanvasRenderingContext2D>()
 const canvas = ref<HTMLCanvasElement>()
 const nozzleSize = ref(1.5);
-const dropSize = ref(0.3);
-const printLength = ref(50); // pixels
-const screenCoverage = ref(0.5);
+const dropSize = ref(1);
+const printLength = ref(100); // pixels
+const screenCoverage = ref(1);
 
 onMounted(() => {
   canvas.value = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -42,16 +43,31 @@ const draw = () => {
   console.log('draw')
   clear()
   drawNozzlePlate();
-  drawLine()
+  drawPrint();
+  
 }
 
 const drawNozzlePlate = () => {
   nozzles.forEach(n => drawNozzle(n));
 }
 
-const drawLine = () => {
-  const drops = nozzles.map(n => n[0])
-  drops.forEach(d => drawDrop(d))
+const drawPrint= () => {
+  const nozzlesX = nozzles.map((n) => n[0])
+
+  nozzlesX.reduce((p, c, _i, _a) => {
+    if(p > c) console.log(p, c, _i)
+    return c
+  }, 0)
+
+  for (let i = 0 ; i < printLength.value ; i++) {
+    drawLine(nozzlesX, i, masks.stitch)
+  }
+}
+
+const drawLine = (nozzlesX: number[], line: number, mask: (i: number) => boolean) => {
+  const drops = nozzlesX.filter((_n, i) => mask(i))
+
+  drops.forEach(d => drawDrop(d, line))
 }
 
 const drawNozzle = (coord = [0,0]) => {
@@ -67,26 +83,22 @@ const drawNozzle = (coord = [0,0]) => {
   ctx.fill();
 }
 
-const drawDrop = (d: number) => {
-  if (context.value === undefined) return
-  const ctx = context.value
-  
-  /**
-  ctx.moveTo(d * zoom + offset[0], nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10);
-  ctx.lineTo(d * zoom + offset[0], nozzles[nozzles.length - 1][1] * zoom + offset[1] + 100);
-  ctx.stroke(); */
-
-  for (let i = 0 ; i < printLength.value ; i++) {
+const drawDrop = (x: number, y: number) => {
+  if (screenCoverage.value !== 1) {
     if (Math.random() > screenCoverage.value)
-      continue;
-
-    ctx.beginPath()
-
-    ctx.arc(d * zoom + offset[0], 
-      nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10 + i,
-      dropSize.value * zoom / 20, 0, Math.PI * 2, true);
-    ctx.fill();
+    return;
   }
+  
+  if (context.value === undefined)
+    return;
+
+  const ctx = context.value
+
+  ctx.beginPath()
+  ctx.arc(x * zoom + offset[0], 
+    nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10 + y,
+    dropSize.value * zoom / 20, 0, Math.PI * 2, true);
+  ctx.fill();
 }
 </script>
 
