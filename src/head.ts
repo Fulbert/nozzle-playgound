@@ -52,7 +52,7 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
     for(let n = 0; n < k.numberOfAddress; n++){
 
         // xCoord is the nozzle id multiplied by the size of a pixel
-        const xCoord = n * k.nozzleXDistance
+        const xCoord = n * k.nozzleXDistance + _position * k.pixelSize
 
         // Column of the nozzle 
         // There's 32 nozzles per column

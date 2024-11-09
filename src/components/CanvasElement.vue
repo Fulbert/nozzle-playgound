@@ -14,7 +14,7 @@ const canvasId = 'canvasEl'
 const context = ref<CanvasRenderingContext2D>()
 const canvas = ref<HTMLCanvasElement>()
 const nozzleSize = ref(1.5);
-const dropSize = ref(1);
+const dropSize = ref(0.5);
 const printLength = ref(100); // pixels
 const screenCoverage = ref(1);
 
@@ -23,7 +23,7 @@ onMounted(() => {
 
   if (canvas) {
     context.value = canvas.value.getContext('2d') || undefined;
-    canvas.value.width = window.innerWidth;
+    canvas.value.width = window.innerWidth- 10;
     canvas.value.height = window.innerHeight -100;
     
     draw()
@@ -41,11 +41,9 @@ const clear = () => {
 }
 
 const draw = () => {
-  console.log('draw')
   clear()
   drawNozzlePlate();
   drawPrint();
-  
 }
 
 const drawNozzlePlate = () => {
@@ -53,17 +51,15 @@ const drawNozzlePlate = () => {
 }
 
 const drawPrint= () => {
-  const nozzlesX = nozzles.filter(n => n[2]).map((n) => n[0])
-
   for (let i = 0 ; i < printLength.value ; i++) {
-    drawLine(nozzlesX, i, masks.stitch)
+    drawLine(nozzles, i, masks.stitch)
   }
 }
 
-const drawLine = (nozzlesX: number[], line: number, mask: (i: number) => boolean) => {
-  const drops = nozzlesX.filter((_n, i) => mask(i))
+const drawLine = (nozzles: nozzle[], line: number, mask: (i: number) => boolean) => {
+  const drops = nozzles.filter((n, i) => mask(i) && n[2])
 
-  drops.forEach(d => drawDrop(d, line))
+  drops.forEach(d => drawDrop(d[0], line))
 }
 
 const drawNozzle = (coord: nozzle) => {
