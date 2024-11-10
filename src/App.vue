@@ -19,13 +19,22 @@ const wheel = (ev: WheelEvent) => {
   clearTimeout(eventTimeout);
 
   eventTimeout = setTimeout(() => {
-    if (ev.shiftKey)
-      heads.value[0].adjustStitch(wheelDelta / 10000);
-    if (ev.altKey)
-      heads.value[0].rotate(wheelDelta / 100000);
     if (ev.ctrlKey) {
       zoom.value += wheelDelta / 100;
     }
+
+    const coord = getEventAbsoluteCoord(ev)
+    if (coord === undefined) throw `Can't get event absolute coordinates. Event: ${ev}`
+
+    const nozzle = getClosestNozzle(coord)
+    if (nozzle === undefined) throw `Can't find close nozzle for coordinates ${coord}`
+    
+    const head = nozzle[3]
+
+    if (ev.shiftKey)
+      heads.value[head].adjustStitch(wheelDelta / 10000);
+    if (ev.altKey)
+      heads.value[head].rotate(wheelDelta / 100000);
     wheelDelta = 0
   }, 50);
 }
@@ -43,23 +52,34 @@ const moveEnd = (ev: DragEvent) => {
 }
 
 const click = (ev: MouseEvent) => {
-  if (ev.currentTarget === null) return
+  const coord = getEventAbsoluteCoord(ev)
+  if (coord === undefined) return
 
-  const rect = (ev.currentTarget as HTMLCanvasElement).getBoundingClientRect()
+  const nozzle = getClosestNozzle(coord) || undefined
 
-  const coord: [number, number] = [
+  console.log(nozzle)
+}
+
+const getEventAbsoluteCoord = (ev: MouseEvent) : [number, number] | undefined => {
+  if (ev.target === null) return
+
+  const rect = (ev.target as HTMLCanvasElement).getBoundingClientRect()
+
+  return [
     (ev.x - rect.left - offset.value[0])/zoom.value,
     (ev.y - rect.top - offset.value[1])/zoom.value
   ]
-
-  const nozzle = getClosestNozzle(coord) || undefined
-  console.log(nozzle ? nozzle[4] : null);
 }
 
 </script>
 
 <template>
-  <div @wheel="wheel" @dragstart="moveStart" @dragend="moveEnd" draggable="true">
-    <CanvasElement :nozzles="getNozzles" :zoom="zoom" :offset="offset" @click="click" />
+  <div>
+    <CanvasElement :nozzles="getNozzles" :zoom="zoom" :offset="offset" 
+      @click="click"
+      @wheel="wheel"
+      @dragstart="moveStart"
+      @dragend="moveEnd"
+      draggable="true" />
   </div>
 </template>
