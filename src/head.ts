@@ -91,8 +91,6 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
             pixel
         ]);
     }
-
-    console.log(`Generated ${coordinates.length} nozzle coordinates`);
     
     coordinates = moveNozzles([_position * ( k.nozzlesPerHead + k.stitchZones[2]) * k.pixelSize, 0], coordinates)
 
@@ -124,8 +122,6 @@ const generateNozzleMask = () => {
 
         mask.push(exist)
     }
-
-    console.log(`Generated ${mask.length} address mask`)
 
     return mask
 }

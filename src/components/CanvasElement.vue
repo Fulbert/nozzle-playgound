@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import * as masks from '../masks'
 import { nozzle } from '../head';
 
-const {nozzles, zoom, offset} = defineProps<{
+const {nozzles, zoom, offset, draw: drawTrigger} = defineProps<{
   nozzles: nozzle[],
   zoom: number;
   offset: number[]
+  draw: number
 }>()
 
 const canvasId = 'canvasEl'
@@ -23,16 +24,16 @@ onMounted(() => {
 
   if (canvas) {
     context.value = canvas.value.getContext('2d') || undefined;
-    canvas.value.width = window.innerWidth- 10;
-    canvas.value.height = window.innerHeight -100;
+    canvas.value.width = window.innerWidth;
+    canvas.value.height = window.innerHeight;
     
     draw()
   }
 })
 
-watch(() => nozzles, () => draw())
-watch(() => zoom, () => draw())
-watch(() => offset, () => draw())
+watch(() => drawTrigger, () => {
+  draw();
+})
 
 const clear = () => {
   if (context.value === undefined || canvas.value === undefined) return
