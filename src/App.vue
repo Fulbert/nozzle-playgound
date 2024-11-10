@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import CanvasElement from './components/CanvasElement.vue'
 import { usePrintbar } from './printbar';
 
-const {heads, getNozzles, getNozzle} = usePrintbar();
+const {heads, getNozzles, getClosestNozzle} = usePrintbar();
 
 const zoom = ref(10)
 const offset = ref([10,10])
@@ -47,12 +47,13 @@ const click = (ev: MouseEvent) => {
 
   const rect = (ev.currentTarget as HTMLCanvasElement).getBoundingClientRect()
 
-  const coord = [
+  const coord: [number, number] = [
     (ev.x - rect.left - offset.value[0])/zoom.value,
     (ev.y - rect.top - offset.value[1])/zoom.value
   ]
 
-  getNozzle(coord)
+  const nozzle = getClosestNozzle(coord) || undefined
+  console.log(nozzle ? nozzle[4] : null);
 }
 
 </script>

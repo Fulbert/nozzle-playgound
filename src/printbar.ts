@@ -1,5 +1,5 @@
 import { computed, ref } from "vue"
-import { useNozzlePlate } from "./head"
+import { nozzle, useNozzlePlate } from "./head"
 
 export const usePrintbar = (numberOfHeads = 2) => {
     const heads = ref(Array.from({length: numberOfHeads},
@@ -10,17 +10,42 @@ export const usePrintbar = (numberOfHeads = 2) => {
         return heads.value.flatMap((h) => h.nozzlesCoordinates);
     })
 
-    const getNozzle = (coord: number[]) => {
-        const nozzles = getNozzles.value.filter((n, i) => {
-            const dX = n[0] - coord[0]
-            const dY = (n[1] - coord[1])
-            const isCLose = Math.sqrt(dX * dX + dY * dY) < 0.5
-            if (isCLose) console.log(i) 
-            return isCLose
+    /**
+     * Return nozzles nearby the coordinates within precision
+     * @param coord [number, number] x,y coordinates
+     * @param precision number maximum distance (mm) to look nozzle (absolute)
+     * @param returnNozzleStitchMasked boolean return nozzle masked in stitch (those nozzles doesn't exist)
+     * @returns nozzle[] sorted from closest to farthest
+     */
+    const getNozzlesNearby = (coord: [number, number], precision = 0.5, returnNozzleStitchMasked = false) => {
+        const nozzles = getNozzles.value.filter((n, i, a) => {
+            const dist = distance([n[0], n[1]], coord)
+            return dist < precision && (!n[2] && !returnNozzleStitchMasked)
+        }).sort((a, b) => {
+            const distA = distance([a[0], a[1]], coord)
+            const distB = distance([b[0], b[1]], coord)
+            return distA - distB
         })
 
-        console.log(nozzles)
+        return nozzles
     }
 
-    return {heads, getNozzles, getNozzle}
+    /**
+     * Return closest nozzle from coordinates or undefined if no nozzle closer than 1 mm (aboslute)
+     * @param coord [number, number] x,y coordinates
+     * @param precision number maximum distance (mm) to look nozzle (absolute)
+     * @param returnNozzleStitchMasked boolean return nozzle masked in stitch (those nozzles doesn't exist)
+     * @returns nozzle | undefined
+     */
+    const getClosestNozzle = (coord: [number, number], precision = 1, returnNozzleStitchMasked = false): nozzle | undefined => {
+        return getNozzlesNearby(coord, precision, returnNozzleStitchMasked)[0]
+    }
+
+    return {heads, getNozzles, getNozzlesNearby, getClosestNozzle}
+}
+
+const distance = (coord1: [number, number], coord2: [number, number]) => {
+    const dX = coord1[0] - coord2[0]
+    const dY = coord1[1] - coord2[1]
+    return Math.sqrt(dX * dX + dY * dY)
 }
