@@ -26,7 +26,7 @@ const wheel = (ev: WheelEvent) => {
     const nozzle = getClosestNozzle(coord)
     if (nozzle === undefined) throw `Can't find close nozzle for coordinates ${coord}`
 
-    const head = nozzle[3]
+    const head = nozzle.head
 
     if (ev.shiftKey){
       heads.value[head].adjustStitch(wheelDelta / 10000);
@@ -44,7 +44,7 @@ const wheel = (ev: WheelEvent) => {
 
     offset.value = [
       (-coord[0]*zoom.value)/2 + offset.value[0] / 2 ,
-      10
+      offset.value[1]
     ]
     zoom.value += wheelDelta / 50;
     drawNow()
@@ -60,7 +60,7 @@ const moveStart = (ev: DragEvent) => {
 const moveEnd = (ev: DragEvent) => {
   offset.value = [
     offset.value[0] + ev.x - dragStart[0], 
-    offset.value[1] + ev.y - dragStart[1]
+    offset.value[1] // + ev.y - dragStart[1]
   ]
 
   drawNow()

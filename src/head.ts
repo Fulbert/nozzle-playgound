@@ -13,9 +13,9 @@ export const useNozzlePlate = (_position = 0) => {
     // rotate nozzle coordinates
     const rotate = (alpha: number) => {
         nozzlesCoordinates.value = nozzlesCoordinates.value.map(c => {
-            const point = rotatePoint([c[0],c[1]], alpha)
-            c[0] = point[0]
-            c[1] = point[1]
+            const point = rotatePoint([c.x,c.y], alpha)
+            c.x = point[0]
+            c.y = point[1]
 
             return c
         })
@@ -83,13 +83,20 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
         const pixelInStitch = _position * k.stitchZones[2]
         const pixel = pixelHeadOffset + pixelPositionInHead - pixelInStitch
 
-        coordinates.push([
-            xCoord, 
-            yCoord,
-            !nozzleMask[n],
-            _position,
-            pixel
-        ]);
+        // Calculate if nozzle is in a stitch area
+        const isInStitch = n < k.stitchZones[2] || n >= k.numberOfAddress - k.stitchZones[2]
+
+        coordinates.push({
+            x: xCoord, 
+            y: yCoord,
+            isInStitch: isInStitch,
+            exist: nozzleMask[n],
+            head: _position,
+            pixel: pixel,
+            fire: false,
+            dropSize: 1,
+            color: 0,
+        });
     }
     
     coordinates = moveNozzles([_position * ( k.nozzlesPerHead + k.stitchZones[2]) * k.pixelSize, 0], coordinates)
@@ -128,17 +135,21 @@ const generateNozzleMask = () => {
 
 const moveNozzles = (move: number[], coordinates: nozzle[]): nozzle[] => {
     return coordinates.map(c => {
-        c[0] += move[0]
-        c[1] += move[1]
+        c.x += move[0]
+        c.y += move[1]
         return c
     })
 }
 
 
-export type nozzle = [x, y, stitchMask, head, pixel]
-
-export type x = number
-export type y = number
-export type stitchMask = boolean
-export type head = number
-export type pixel = number
+export interface nozzle {
+    x: number, 
+    y: number,
+    isInStitch: boolean,
+    exist: boolean, 
+    head: number,
+    pixel: number,
+    fire: false,
+    dropSize: number,
+    color: number
+}

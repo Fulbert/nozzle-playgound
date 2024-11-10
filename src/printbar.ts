@@ -18,12 +18,12 @@ export const usePrintbar = (numberOfHeads = 2) => {
      * @returns nozzle[] sorted from closest to farthest
      */
     const getNozzlesNearby = (coord: [number, number], precision = 0.5, returnNozzleStitchMasked = false) => {
-        const nozzles = getNozzles.value.filter((n, i, a) => {
-            const dist = distance([n[0], n[1]], coord)
-            return dist < precision && (!n[2] && !returnNozzleStitchMasked)
+        const nozzles = getNozzles.value.filter((n) => {
+            const dist = distance([n.x, n.y], coord)
+            return dist < precision && (n.exist && !returnNozzleStitchMasked)
         }).sort((a, b) => {
-            const distA = distance([a[0], a[1]], coord)
-            const distB = distance([b[0], b[1]], coord)
+            const distA = distance([a.x, a.y], coord)
+            const distB = distance([b.x, b.y], coord)
             return distA - distB
         })
 
