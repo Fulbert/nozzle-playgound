@@ -52,13 +52,14 @@ const drawNozzlePlate = () => {
 }
 
 const drawPrint= () => {
-  for (let i = 0 ; i < printLength.value ; i++) {
-    drawLine(nozzles, i, masks.stitch)
+  for (let y = 0 ; y < window.innerHeight / 2 ; y++) {
+    drawLine(nozzles, y, masks.stitch)
   }
 }
 
-const drawLine = (nozzles: nozzle[], line: number, mask: (i: number) => boolean) => {
-  const drops = nozzles.filter((n, i) => mask(i) && n[2])
+const drawLine = (nozzles: nozzle[], line: number, mask: (n: nozzle) => boolean) => {
+  const drops = nozzles.filter(n => n[2])
+    .filter((n) => mask(n))
 
   drops.forEach(d => drawDrop(d[0], line))
 }
@@ -89,10 +90,15 @@ const drawDrop = (x: number, y: number) => {
 
   const ctx = context.value
 
+  const arcX = x * zoom + offset[0]
+  const arcY = window.innerHeight / 2 + y
+  const arcSize = dropSize.value * zoom / 20
+
   ctx.beginPath()
-  ctx.arc(x * zoom + offset[0], 
-    nozzles[nozzles.length - 1][1] * zoom + offset[1] + 10 + y,
-    dropSize.value * zoom / 20, 0, Math.PI * 2, true);
+  ctx.arc(arcX, 
+    arcY,
+    arcSize,
+    0, Math.PI * 2, true);
   ctx.fill();
 }
 </script>

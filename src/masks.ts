@@ -1,7 +1,8 @@
 import { numberOfAddress, stitchZones } from "./constants"
+import { nozzle } from "./head"
 
-export const stitch = (i: number) => {
-    return i % 16 === 0 || i % 16 - 7 === 0
+export const stitch = (n: nozzle) => {
+    return n[4] % 16 === 0
 }
 
 
