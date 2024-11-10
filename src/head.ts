@@ -86,6 +86,8 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
         // Calculate if nozzle is in a stitch area
         const isInStitch = n < k.stitchZones[2] || n >= k.numberOfAddress - k.stitchZones[2]
 
+        const color = `lch(50.0% 40 ${(pixel%32)*(360/32)})`
+
         coordinates.push({
             x: xCoord, 
             y: yCoord,
@@ -95,7 +97,7 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
             pixel: pixel,
             fire: false,
             dropSize: 1,
-            color: 0,
+            color: color,
         });
     }
     
@@ -151,5 +153,5 @@ export interface nozzle {
     pixel: number,
     fire: false,
     dropSize: number,
-    color: number
+    color: string
 }

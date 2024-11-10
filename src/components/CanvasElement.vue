@@ -53,15 +53,16 @@ const drawNozzlePlate = () => {
 
 const drawPrint= () => {
   for (let y = 0 ; y < window.innerHeight ; y++) {
-    drawLine(nozzles, y, masks.stitch)
+    drawLine(nozzles, y, [masks.stitch, masks.angle])
   }
 }
 
-const drawLine = (nozzles: nozzle[], line: number, mask: (n: nozzle) => boolean) => {
-  const drops = nozzles.filter(n => n.exist)
-    .filter((n) => mask(n))
+const drawLine = (nozzles: nozzle[], line: number, masks: ((n: nozzle) => boolean)[]) => {
+  const drops = nozzles.filter(n => {
+    return n.exist && masks.reduce((p,c) => p || c(n),false)
+  })
 
-  drops.forEach(d => drawDrop(d.x, line))
+  drops.forEach(d => drawDrop(d.x, line, d.color))
 }
 
 const drawNozzle = (coord: nozzle) => {
@@ -71,15 +72,17 @@ const drawNozzle = (coord: nozzle) => {
   const ctx = context.value;
 
   ctx.beginPath();
+  ctx.fillStyle = 'black'
   ctx.arc(
     coord.x * zoom + offset[0], 
     coord.y * zoom + offset[1],
     nozzleSize.value, 
     0, Math.PI * 2, true);
+  ctx.fillStyle = coord.color
   ctx.fill();
 }
 
-const drawDrop = (x: number, y: number) => {
+const drawDrop = (x: number, y: number, color = 'black') => {
   if (screenCoverage.value !== 1) {
     if (Math.random() > screenCoverage.value)
     return;
@@ -98,7 +101,8 @@ const drawDrop = (x: number, y: number) => {
   ctx.arc(arcX, 
     arcY,
     arcSize,
-    0, Math.PI * 2, true);
+    0, Math.PI * 2, true); 
+  ctx.fillStyle = color
   ctx.fill();
 }
 </script>
