@@ -1,5 +1,5 @@
 import { decode, TiffIfd } from "tiff";
-import {  computed, ref } from "vue";
+import { ref } from "vue";
 import { usePrintbar } from "./printbar";
 import { head, nozzle } from "./head";
 import { pixelSize } from "./constants";
@@ -23,10 +23,6 @@ export const usePrinter = (numberOfPrintbars = 1) => {
         } catch (e) { throw `Can't load tiff: ${e}` }
 
         console.log(`File loaded ${file.width};${file.height}`)
-    }
-
-    const setJetsFiring = (line: boolean[]) => {
-        printbars[0].heads.forEach(h => h.setJetsFiring(line))
     }
 
     const getClosestNozzle = (coord: [number, number], precision = 1, returnNozzleStitchMasked = false): nozzle | undefined => {

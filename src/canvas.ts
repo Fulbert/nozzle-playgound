@@ -14,7 +14,6 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         printbars,
         drops,
         getClosestHead,
-        getClosestNozzle,
         loadTiff,
         calculateDrops
     } = _printer
@@ -170,7 +169,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         const coord = getEventAbsoluteCoord(ev)
         if (coord === undefined) return
 
-        const nozzle = getClosestNozzle(coord)
+        //const nozzle = getClosestNozzle(coord)
     }
 
     const getEventAbsoluteCoord = (ev: MouseEvent) : [number, number] | undefined => {

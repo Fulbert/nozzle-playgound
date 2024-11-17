@@ -110,7 +110,7 @@ const generateNozzlesCoordinates = (_printbar: number, _position: number): nozzl
         });
     }
     
-    coordinates = moveNozzles([_position * ( k.nozzlesPerHead + k.stitchZones[2]) * k.pixelSize, 0], coordinates)
+    coordinates = moveNozzles([_position * k.nozzlesPerHead * k.pixelSize, 0], coordinates)
 
     return coordinates
 }
