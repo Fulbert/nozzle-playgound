@@ -1,10 +1,8 @@
 import { ref } from 'vue';
 import * as k from './constants.ts'
 
-export const useNozzlePlate = (_position = 0) => {  
-    const position = ref(_position);
-
-    const nozzlesCoordinates = ref<nozzle[]>(generateNozzlesCoordinates(position.value));
+export const useHead = (_printbar = 0, _position = 0) => {  
+    const nozzlesCoordinates = ref<nozzle[]>(generateNozzlesCoordinates(_printbar, _position));
 
     const moveX = (move: number) => {
         nozzlesCoordinates.value = moveNozzles([move,0], nozzlesCoordinates.value)
@@ -21,13 +19,22 @@ export const useNozzlePlate = (_position = 0) => {
         })
     }
 
+    const setJetsFiring = (data: boolean[]) => {
+        nozzlesCoordinates.value.map((n, i) => {
+            if (data[i] === undefined) return n
+
+            n.fire = data[i]
+            return n
+        })
+    }
+
     // Adjust stitch
     const adjustStitch = (move: number) => {
         moveX(move);
     }
 
     const reset = () => {
-        nozzlesCoordinates.value = generateNozzlesCoordinates(position.value)
+        nozzlesCoordinates.value = generateNozzlesCoordinates(_printbar, _position)
     }
 
     const rotatePoint = (
@@ -46,10 +53,10 @@ export const useNozzlePlate = (_position = 0) => {
 
     
 
-    return {nozzlesCoordinates, adjustStitch, position, rotate, reset }
+    return {nozzlesCoordinates, adjustStitch, _position, rotate, reset, setJetsFiring }
 }
 
-const generateNozzlesCoordinates = (_position: number): nozzle[] => {
+const generateNozzlesCoordinates = (_printbar: number, _position: number): nozzle[] => {
     let coordinates: nozzle[] = [];
 
     const nozzleMask = generateNozzleMask();
@@ -89,11 +96,13 @@ const generateNozzlesCoordinates = (_position: number): nozzle[] => {
         const color = `lch(50.0% 40 ${(pixel%32)*(360/32)})`
 
         coordinates.push({
+            printbar: _printbar,
+            head: _position,
+            address: n,
             x: xCoord, 
             y: yCoord,
             isInStitch: isInStitch,
             exist: nozzleMask[n],
-            head: _position,
             pixel: pixel,
             fire: false,
             dropSize: 1,
@@ -144,14 +153,18 @@ const moveNozzles = (move: number[], coordinates: nozzle[]): nozzle[] => {
 }
 
 
-export interface nozzle {
+export interface nozzle { 
+    printbar: number,
+    head: number,
+    address: number,
     x: number, 
     y: number,
     isInStitch: boolean,
-    exist: boolean, 
-    head: number,
+    exist: boolean,
     pixel: number,
-    fire: false,
+    fire: boolean,
     dropSize: number,
-    color: string
+    color: string,
 }
+
+export type head = ReturnType<typeof useHead>

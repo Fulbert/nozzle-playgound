@@ -1,13 +1,16 @@
 import { computed, ref } from "vue"
-import { nozzle, useNozzlePlate } from "./head"
+import { nozzle, useHead } from "./head"
+import { colors } from "./constants"
 
-export const usePrintbar = (numberOfHeads = 2) => {
-    const heads = ref(Array.from({length: numberOfHeads},
-        (_i, _k) => {return useNozzlePlate(_k)}
-    ))
+export const usePrintbar = (_number = 0, _numberOfHeads = 2) => {
+    const color = ref(colors[_number])
+
+    const heads = Array.from({length: _numberOfHeads},
+        (_i, _k) => useHead(_number, _k)
+    )
 
     const getNozzles = computed(() => {
-        return heads.value.flatMap((h) => h.nozzlesCoordinates);
+        return heads.flatMap((h) => h.nozzlesCoordinates.value);
     })
 
     /**
@@ -41,7 +44,7 @@ export const usePrintbar = (numberOfHeads = 2) => {
         return getNozzlesNearby(coord, precision, returnNozzleStitchMasked)[0]
     }
 
-    return {heads, getNozzles, getNozzlesNearby, getClosestNozzle}
+    return {color, heads, getNozzles, getNozzlesNearby, getClosestNozzle}
 }
 
 const distance = (coord1: [number, number], coord2: [number, number]) => {
@@ -49,3 +52,5 @@ const distance = (coord1: [number, number], coord2: [number, number]) => {
     const dY = coord1[1] - coord2[1]
     return Math.sqrt(dX * dX + dY * dY)
 }
+
+export type printbar = ReturnType<typeof usePrintbar>
