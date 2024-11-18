@@ -3,15 +3,15 @@ import { nozzle, useHead } from "./head"
 import { colors } from "./constants"
 
 export const usePrintbar = (_number = 0, _numberOfHeads = 2) => {
+    const number = ref(_number)
     const color = ref(colors[_number])
+    const numberOfHeads = ref(_numberOfHeads)
 
-    const heads = Array.from({length: _numberOfHeads},
-        (_i, _k) => useHead(_number, _k)
+    const heads = Array.from({length: numberOfHeads.value},
+        (_i, _k) => useHead(number.value, _k)
     )
 
-    const getNozzles = computed(() => {
-        return heads.flatMap((h) => h.nozzlesCoordinates.value);
-    })
+    const getNozzles = computed(() => heads.flatMap((h) => h.nozzlesCoordinates.value))
 
     /**
      * Return nozzles nearby the coordinates within precision

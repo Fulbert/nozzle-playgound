@@ -10,14 +10,13 @@ import { head, nozzle } from './head';
  * @param printer printer description
  * @returns 
  */
-export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
+export const useCanvas = (_canvasId = 'printerCanvas', _printer = usePrinter()) => {
     // Deconstruc _printer parameter with methods and states to use in canvas
     const {
         printbars,
         drops,
         getClosestHead,
         loadTiff,
-        calculateDrops
     } = _printer
 
     // Define reactives variables (changing them would trigger redrawing)
@@ -46,10 +45,10 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
      */
     const draw = () => { 
         canvas.value = document.getElementById(canvasId.value) as HTMLCanvasElement;
-        if (canvas.value === null) throw `Can't get CanvasElement ${canvasId.value}`
+        if (canvas.value === null) return
 
         context.value = canvas.value.getContext('2d')
-        if (context.value === undefined ) throw `Can't get context`
+        if (context.value === null) return
 
         canvas.value.width = window.innerWidth;
         canvas.value.height = window.innerHeight;
@@ -64,8 +63,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
      * @returns void
      */
     const clear = () => {
-        if (context.value === null|| canvas.value === undefined) 
-             throw `Can't get canvas (${canvas.value}) or context (${context.value})`
+        if (context.value === null|| canvas.value === undefined) return
 
         context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
     }
@@ -113,7 +111,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
     const drawNozzle = (nozzle: nozzle) => {
         if (!nozzle.exist) return
 
-        if (context.value === null) throw `Can't get context`
+        if (context.value === null) return
 
         const ctx = context.value;
 
@@ -141,7 +139,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
                 return;
         }
         
-        if (context.value === null) throw `Can't get context`
+        if (context.value === null) return
 
         const ctx = context.value
 
@@ -169,10 +167,10 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
 
         eventTimeout = setTimeout(() => {
             const coord = getEventAbsoluteCoord(ev)
-            if (coord === undefined) throw `Can't get event absolute coordinates. Event: ${ev}`
+            if (coord === undefined) return
 
             const head = getClosestHead(coord)
-            if (head === undefined) throw `Can't find close nozzle for coordinates ${coord}`
+            if (head === undefined) return
 
 
             if (ev.shiftKey){
@@ -223,8 +221,8 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
      * @param ev 
      * @returns 
      */
-    const getEventAbsoluteCoord = (ev: MouseEvent) : coord => {
-        if (ev.target === null) throw `Can't get event target ${ev}`
+    const getEventAbsoluteCoord = (ev: MouseEvent) : coord | undefined => {
+        if (ev.target === null) return
 
         const rect = (ev.target as HTMLCanvasElement).getBoundingClientRect()
 
@@ -254,7 +252,6 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
             return
 
             loadTiff(await file.arrayBuffer())
-            calculateDrops()
         }
     }
 

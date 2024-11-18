@@ -1,62 +1,95 @@
 import { decode, TiffIfd } from "tiff";
 import { computed, ref } from "vue";
-import { usePrintbar } from "./printbar";
+import { printbar, usePrintbar } from "./printbar";
 import { head, nozzle } from "./head";
 import { pixelSize } from "./constants";
+import { coord } from "./canvas";
 
-export const usePrinter = (numberOfPrintbars = 1) => {
-    const printbars = Array.from({length: numberOfPrintbars},
-        (_i, _k) => usePrintbar(_k)
+/**
+ * Create a printer composable
+ * @param numberOfPrintbars number of printbar included in the printer
+ * @returns 
+ */
+export const usePrinter = (_numberOfPrintbars = 1, _numberOfHeads = 2) => {
+    const numberOfPrintbars = ref(_numberOfPrintbars)
+    const numberOfHeads = ref(_numberOfHeads)
+
+    // Array of printbars (composable)
+    const printbars: printbar[] = Array.from({length: numberOfPrintbars.value},
+        (_i, _k) => usePrintbar(_k, numberOfHeads.value)
     )
 
-    let file = ref<TiffIfd>()
+    // Get all the printer nozzles
+    const getNozzles = computed(() => printbars.flatMap(pb => pb.getNozzles.value))
 
+    // Tiff file loaded
+    const file = ref<TiffIfd>()
+
+    // Drops positions (computed and reactive to file or printhead changes)
     const drops = computed<drop[]>(() => {
         const image = file.value
         const newDrops: drop[] = []
         if (image === undefined)
             return newDrops
 
-        const nozzles = printbars.flatMap(pb => pb.getNozzles.value)
+        // Deconstruct nozzle refs for performance
+        const nozzles = [...getNozzles.value]
 
         const width = image.width
         const isTestPattern = nozzles.length % width === 0
         const numberOfHeads = printbars[0].heads.length
 
-        for(let i = 0, head = 0, len = image.data.length ; i < len; ) {
-            const fire = image.data[i]
-            if (fire === 255){
-                i++
+        /**
+         * Loop though all the image pixels to create drops
+         * If the image is a test pattern (image width = head width), the image is repeated on each heads
+         * If the image is of any other size, it's printed from nozzle 0
+         */
+        for(let pixel = 0, head = 0, len = image.data.length ; pixel < len; ) {
+            // Exit the loop if the pixel is empty
+            const fire = image.data[pixel] === 255
+            if (fire){
+                pixel++
                 continue
             }
 
-            const x = i % width
-            const y = (i - x) / width
+            // Calculate pixel coord
+            const x = pixel % width
+            const y = (pixel - x) / width
 
+            // Select corresponding nozzle and create a drop with the same nozzle properties
             const offset = head * width
             const drop = {...nozzles[x + offset]}
 
+            // Exit the loop if the nozzle doesn't exist (in stitch area)
             if (!drop.exist){
-                i++
+                pixel++
                 continue
             }
 
+            // Calculate the drop y position
             drop.y = y * pixelSize
+
             newDrops.push(drop)
 
+            // Increment pixel and eventually head
             if (isTestPattern){
                 if (head === numberOfHeads - 1) {
                     head = 0
-                    i++;
+                    pixel++;
                 }
                 else head++;
             }
-            else i++
+            else pixel++
         }
 
         return newDrops
     })
 
+    /**
+     * Load a tiff file in the file ref
+     * @param fileBuffer 
+     * @returns 
+     */
     const loadTiff  = (fileBuffer: ArrayBuffer) => {
         try {
             const tiff =  decode(fileBuffer)[0]
@@ -65,13 +98,19 @@ export const usePrinter = (numberOfPrintbars = 1) => {
     
             file.value = tiff
         } catch (e) { throw `Can't load tiff: ${e}` }
-
-        console.log(`File loaded ${file.value.width};${file.value.height}`)
     }
 
-    const getClosestNozzle = (coord: [number, number], precision = 1, returnNozzleStitchMasked = false): nozzle | undefined => {
+    /**
+     * Look for the closest nozzle from the coord
+     * @param coord 
+     * @param precision 
+     * @param returnNozzleStitchMasked 
+     * @returns 
+     */
+    const getClosestNozzle = (coord: coord, precision = 1, returnNozzleStitchMasked = false): nozzle | undefined => {
         const closeNozzles: nozzle[] = []
 
+        // Fetch closest nozzle from each printbars
         printbars.forEach(pb => {
             const nozzle = pb.getClosestNozzle(coord, precision, returnNozzleStitchMasked)
 
@@ -84,7 +123,14 @@ export const usePrinter = (numberOfPrintbars = 1) => {
         return closeNozzles[0]
     }
 
-    const getClosestHead = (coord: [number, number], precision = 1, returnNozzleStitchMasked = false): head | undefined => {
+    /**
+     * Get the closest head composable from the coord
+     * @param coord 
+     * @param precision 
+     * @param returnNozzleStitchMasked 
+     * @returns 
+     */
+    const getClosestHead = (coord: coord, precision = 1, returnNozzleStitchMasked = false): head | undefined => {
         const closeNozzle = getClosestNozzle(coord, precision, returnNozzleStitchMasked)
         
         if (closeNozzle === undefined)
@@ -93,13 +139,8 @@ export const usePrinter = (numberOfPrintbars = 1) => {
         return printbars[closeNozzle.printbar].heads[closeNozzle.head]
     }
 
-    const calculateDrops = () => {
-        
-    }
-
-    return {printbars, drops, loadTiff, getClosestNozzle, getClosestHead, calculateDrops }
+    return {printbars, drops, loadTiff, getClosestNozzle, getClosestHead }
 }
 
-export interface drop extends nozzle {
-
-}
+// A drop share the same properties than a nozzle
+export interface drop extends nozzle {}

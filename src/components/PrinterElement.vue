@@ -10,7 +10,7 @@ const { wheel, moveStart, moveEnd, dragOver, drop, printer} = useCanvas()
 </script>
 
 <template>
-  <canvas id="canvasEl"
+  <canvas id="printerCanvas"
     @wheel.prevent="wheel"
     @mousedown.prevent="moveStart"
     @mouseup.prevent="moveEnd"
