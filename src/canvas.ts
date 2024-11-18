@@ -4,12 +4,14 @@ import { printbar } from './printbar';
 import { head, nozzle } from './head';
 
 /**
- * Display a printer in a canvas
+ * Display a printer in a canvas element
+ * Everytime the printer's reactives attributes changes, the canvas is redrawn.
  * @param canvasId HTMLElement id attribute to hook the printer visualization
  * @param printer printer description
  * @returns 
  */
 export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
+    // Deconstruc _printer parameter with methods and states to use in canvas
     const {
         printbars,
         drops,
@@ -18,88 +20,128 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         calculateDrops
     } = _printer
 
-    const context = ref<CanvasRenderingContext2D>()
+    // Define reactives variables (changing them would trigger redrawing)
+    const canvasId = ref(_canvasId)
     const canvas = ref<HTMLCanvasElement>()
+    const context = ref<CanvasRenderingContext2D | null>(null)
     const nozzleSize = ref(1.5);
     const dropSize = ref(0.25);
     const screenCoverage = ref(1);
     const zoom = ref(10)  
     const offset = ref([10,10])
-    const dragStart = [0,0]
+
+    // Define variables shared by different methods in the composable, but not reactives
+    const dragStart: coord = [0,0]
     let eventTimeout: number;
     let wheelDelta = 0;
 
-    const clear = () => {
-        if (context.value === undefined || canvas.value === undefined) return
-
-        context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
-    }
-
+    /**
+     * Draw the canvas when the composable is mounted
+     */
     onMounted(() => draw())
 
+    /**
+     * Draw the canvas
+     * @returns void
+     */
     const draw = () => { 
-        canvas.value = document.getElementById(_canvasId) as HTMLCanvasElement;
-        if (canvas.value === null)
-            return
+        canvas.value = document.getElementById(canvasId.value) as HTMLCanvasElement;
+        if (canvas.value === null) throw `Can't get CanvasElement ${canvasId.value}`
 
-        context.value = canvas.value.getContext('2d') || undefined;
-        if (context.value === undefined )
-            return
+        context.value = canvas.value.getContext('2d')
+        if (context.value === undefined ) throw `Can't get context`
 
         canvas.value.width = window.innerWidth;
         canvas.value.height = window.innerHeight;
         
-        clear()
+        clear();
         drawPrinter();
         drawPrint();
     }
 
+    /**
+     * Clear the canvas (used before redrawing)
+     * @returns void
+     */
+    const clear = () => {
+        if (context.value === null|| canvas.value === undefined) 
+             throw `Can't get canvas (${canvas.value}) or context (${context.value})`
+
+        context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
+    }
+
+    /**
+     * Draw the printer (printbars > heads > nozzles)
+     */
     const drawPrinter = () => {
         printbars.forEach(pb => drawPrintbar(pb))
     }
 
+    /**
+     * Draw a printbar
+     * @param printbar composable
+     */
     const drawPrintbar = (printbar: printbar) => {
         printbar.heads.forEach(h => drawHead(h))
     }
 
+    /**
+     * Draw a head
+     * @param head composable
+     */
     const drawHead = (head: head) => {
         head.nozzlesCoordinates.value.forEach(n => drawNozzle(n));
     }
 
+    /**
+     * Draw the print
+     */
     const drawPrint= () => {
-        const dropsToDraw = drops.value
+        const dropsToDraw = [...drops.value]; // deconscruct drops ref to break reactiveness (for performance reasons)
+        
+        // loop through drops (use for for performances reasons)
         for (let i = 0, len = dropsToDraw.length ; i < len ; i++) {
-            drawDrop(dropsToDraw[i], i)
+            drawDrop(dropsToDraw[i])
         }
     }
 
-    const drawNozzle = (coord: nozzle) => {
-        if (!coord.exist) return
+    /**
+     * Draw a nozzle
+     * @param nozzle
+     * @returns void
+     */
+    const drawNozzle = (nozzle: nozzle) => {
+        if (!nozzle.exist) return
 
-        if (context.value === undefined) return
+        if (context.value === null) throw `Can't get context`
+
         const ctx = context.value;
 
         ctx.beginPath();
         ctx.fillStyle = 'black'
         ctx.arc(
-            coord.x * zoom.value + offset.value[0], 
-            coord.y * zoom.value + offset.value[1],
+            nozzle.x * zoom.value + offset.value[0], 
+            nozzle.y * zoom.value + offset.value[1],
             nozzleSize.value, 
             0, Math.PI * 2, true);
-        ctx.fillStyle = coord.color
+        ctx.fillStyle = nozzle.color
         ctx.fill();
     }
 
-    const drawDrop = (drop: drop, _i = 1) => {
+    /**
+     * Draw a drop
+     * @param drop 
+     * @returns void
+     */
+    const drawDrop = (drop: drop) => {
         const {x, y, color} = drop
 
         if (screenCoverage.value !== 1) {
             if (Math.random() > screenCoverage.value)
-            return;
+                return;
         }
         
-        if (context.value === undefined)
-            return;
+        if (context.value === null) throw `Can't get context`
 
         const ctx = context.value
 
@@ -116,6 +158,10 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         ctx.fill();
     }
 
+    /**
+     * Handle wheel events (zoom, angle, stitch)
+     * @param ev 
+     */
     const wheel = (ev: WheelEvent) => {
         wheelDelta += ev.deltaY,
 
@@ -150,17 +196,35 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         }, 100);
     }
 
+    /**
+     * Handle mousedown event to pan in the canvas
+     * Save the start of the mouse movement
+     * @param ev 
+     */
     const moveStart = (ev: MouseEvent) => {
         dragStart[0] = ev.x
         dragStart[1] = ev.y
     }
 
+    /**
+     * Handle mouseup event to pan in the canvas
+     * Trigger the move
+     * @param ev 
+     */
     const moveEnd = (ev: MouseEvent) => {
         changeOffset([ev.x - dragStart[0], 0])
     }
 
-    const getEventAbsoluteCoord = (ev: MouseEvent) : [number, number] | undefined => {
-        if (ev.target === null) return
+    /**
+     * Calculate the absolute position of a MouseEvent within the canvas
+     * The nozzle position is always calculated at 1:1 size
+     * Zoom is applied during drawing
+     * When a event occur in the window, the method calculate it's absolute position in the nozzle scale (1:1)
+     * @param ev 
+     * @returns 
+     */
+    const getEventAbsoluteCoord = (ev: MouseEvent) : coord => {
+        if (ev.target === null) throw `Can't get event target ${ev}`
 
         const rect = (ev.target as HTMLCanvasElement).getBoundingClientRect()
 
@@ -170,10 +234,19 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         ]
     }
 
+    /**
+     * Handle dragover events (to permit drop event)
+     * @returns 
+     */
     const dragOver = () => {
         return false;
     }
 
+    /**
+     * Handle drop events to load tiff files
+     * @param ev 
+     * @returns void
+     */
     const drop = async (ev: DragEvent) => {
         if (ev.dataTransfer?.items[0]) {
             const file = ev.dataTransfer.items[0].getAsFile();
@@ -185,16 +258,34 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         }
     }
 
-    const changeOffset = (_offset: [number, number]) => {
+    /**
+     * Change offset
+     * Helper method
+     * @param _offset 
+     */
+    const changeOffset = (_offset: coord) => {
         const x = offset.value[0] + _offset[0]
         const y = offset.value[1] + _offset[1]
 
         offset.value = [x, y]
     }
 
+    /**
+     * All reactives variables used in the draw functions will trigger a re-draw
+     * If print, printbars, nozzles are changed, the canvas will be re-draw.
+     */
     watchEffect(() => {
         draw()
     })
 
-    return {wheel, moveStart, moveEnd, dragOver, drop, drops}
+    /**
+     * Return methods and states used by the canvas element
+     * printer is return for troubleshooting purposes
+     */
+    return {wheel, moveStart, moveEnd, dragOver, drop, printer: _printer}
 }
+
+/**
+ * [x, y] coordinates
+ */
+export type coord = [number, number]

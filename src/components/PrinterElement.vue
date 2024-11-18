@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import {useCanvas} from '../canvas'
 
-const { wheel, moveStart, moveEnd, dragOver, drop} = useCanvas()
+/**
+ * Import methods and state used for canvas from composable
+ * printer is imported for troubleshooting purpose (Vue plugin inpection)
+ */
+const { wheel, moveStart, moveEnd, dragOver, drop, printer} = useCanvas()
 
 </script>
 
