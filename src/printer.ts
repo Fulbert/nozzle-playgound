@@ -57,24 +57,38 @@ export const usePrinter = (numberOfPrintbars = 1) => {
         const nozzles = printbars.flatMap(pb => pb.getNozzles.value)
 
         const width = file.width
-        for(let i = 0, dropsPrinted = 0, len = file.data.length ; i < len ; i++) {
-            const fire = file.data[i]
-            if (fire !== 0)
-                continue
+        const isTestPattern = nozzles.length % width === 0
+        const numberOfHeads = printbars[0].heads.length
 
-            dropsPrinted++;
+        for(let i = 0, head = 0, len = file.data.length ; i < len; ) {
+            const fire = file.data[i]
+            if (fire === 255){
+                i++
+                continue
+            }
 
             const x = i % width
             const y = (i - x) / width
-            
-            // Deconstruct
-            const drop = {...nozzles[x]}
 
-            if (!drop.exist)
+            const offset = head * width
+            const drop = {...nozzles[x + offset]}
+
+            if (!drop.exist){
+                i++
                 continue
+            }
 
             drop.y = y * pixelSize
             newDrops.push(drop)
+
+            if (isTestPattern){
+                if (head === numberOfHeads - 1) {
+                    head = 0
+                    i++;
+                }
+                else head++;
+            }
+            else i++
         }
 
         drops.value = newDrops

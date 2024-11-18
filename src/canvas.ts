@@ -21,7 +21,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
     const context = ref<CanvasRenderingContext2D>()
     const canvas = ref<HTMLCanvasElement>()
     const nozzleSize = ref(1.5);
-    const dropSize = ref(0.5);
+    const dropSize = ref(0.25);
     const screenCoverage = ref(1);
     const zoom = ref(10)  
     const offset = ref([10,10])
@@ -141,35 +141,22 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
                 return
             }
 
-            offset.value = [
-                (-coord[0]*zoom.value)/2 + offset.value[0] / 2 ,
-                offset.value[1]
-            ]
             zoom.value += wheelDelta / 50;
             wheelDelta = 0
+
+            const x = -(ev.x - (window.innerWidth / 2))*8 / zoom.value
+            changeOffset([x, 0])
+
         }, 100);
     }
 
-    const moveStart = (ev: DragEvent) => {
-        ev.preventDefault()
+    const moveStart = (ev: MouseEvent) => {
         dragStart[0] = ev.x
         dragStart[1] = ev.y
     }
 
-    const moveEnd = (ev: DragEvent) => {
-        ev.preventDefault()
-
-        offset.value = [
-            offset.value[0] + ev.x - dragStart[0], 
-            offset.value[1] // + ev.y - dragStart[1]
-        ]
-    }
-
-    const click = (ev: MouseEvent) => {
-        const coord = getEventAbsoluteCoord(ev)
-        if (coord === undefined) return
-
-        //const nozzle = getClosestNozzle(coord)
+    const moveEnd = (ev: MouseEvent) => {
+        changeOffset([ev.x - dragStart[0], 0])
     }
 
     const getEventAbsoluteCoord = (ev: MouseEvent) : [number, number] | undefined => {
@@ -184,7 +171,7 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
     }
 
     const dragOver = () => {
-     return false;
+        return false;
     }
 
     const drop = async (ev: DragEvent) => {
@@ -198,9 +185,16 @@ export const useCanvas = (_canvasId = 'canvasEl', _printer = usePrinter()) => {
         }
     }
 
+    const changeOffset = (_offset: [number, number]) => {
+        const x = offset.value[0] + _offset[0]
+        const y = offset.value[1] + _offset[1]
+
+        offset.value = [x, y]
+    }
+
     watchEffect(() => {
         draw()
     })
 
-    return {click, wheel, moveStart, moveEnd, dragOver, drop, drops}
+    return {wheel, moveStart, moveEnd, dragOver, drop, drops}
 }
