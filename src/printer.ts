@@ -1,5 +1,5 @@
 import { decode, TiffIfd } from "tiff";
-import { computed, ref } from "vue";
+import { computed, ref, toRaw } from "vue";
 import { printbar, usePrintbar } from "./printbar";
 import { head, nozzle } from "./head";
 import { pixelSize } from "./constants";
@@ -27,7 +27,12 @@ export const usePrinter = (_numberOfPrintbars = 1, _numberOfHeads = 2) => {
 
     // Drops positions (computed and reactive to file or printhead changes)
     const drops = computed<drop[]>(() => {
+        const timeStart = new Date()
         const image = file.value
+
+        if (image === undefined) return []
+
+        const data = [...toRaw(image.data )]
         const newDrops: drop[] = []
         if (image === undefined)
             return newDrops
@@ -46,7 +51,7 @@ export const usePrinter = (_numberOfPrintbars = 1, _numberOfHeads = 2) => {
          */
         for(let pixel = 0, head = 0, len = image.data.length ; pixel < len; ) {
             // Exit the loop if the pixel is empty
-            const fire = image.data[pixel] === 255
+            const fire = data[pixel] === 255
             if (fire){
                 pixel++
                 continue
@@ -82,6 +87,10 @@ export const usePrinter = (_numberOfPrintbars = 1, _numberOfHeads = 2) => {
             else pixel++
         }
 
+        const timeEnd = new Date()
+        console.log(`Takes ${(timeEnd.getSeconds()*1000+timeEnd.getMilliseconds()) - 
+            (timeStart.getSeconds()*1000+timeStart.getMilliseconds())
+        }ms`)
         return newDrops
     })
 

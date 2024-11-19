@@ -88,7 +88,7 @@ export const useCanvas = (_canvasId = 'printerCanvas', _printer = usePrinter()) 
      * @param head composable
      */
     const drawHead = (head: head) => {
-        head.nozzlesCoordinates.value.forEach(n => drawNozzle(n));
+        head.nozzles.value.forEach(n => drawNozzle(n));
     }
 
     /**

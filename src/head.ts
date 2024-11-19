@@ -1,16 +1,19 @@
-import { ref } from 'vue';
+import { computed, ref, toRaw } from 'vue';
 import * as k from './constants.ts'
 
 export const useHead = (_printbar = 0, _position = 0) => {  
-    const nozzlesCoordinates = ref<nozzle[]>(generateNozzlesCoordinates(_printbar, _position));
+    const nozzles = ref<nozzle[]>(generateNozzles(_printbar, _position));
+
+    // Return a raw array of nozzles for performance reasons
+    const getNozzles = computed(() => [...toRaw(nozzles.value)])
 
     const moveX = (move: number) => {
-        nozzlesCoordinates.value = moveNozzles([move,0], nozzlesCoordinates.value)
+        nozzles.value = moveNozzles([move,0], nozzles.value)
     }
     
     // rotate nozzle coordinates
     const rotate = (alpha: number) => {
-        nozzlesCoordinates.value = nozzlesCoordinates.value.map(c => {
+        nozzles.value = nozzles.value.map(c => {
             const point = rotatePoint([c.x,c.y], alpha)
             c.x = point[0]
             c.y = point[1]
@@ -20,7 +23,7 @@ export const useHead = (_printbar = 0, _position = 0) => {
     }
 
     const setJetsFiring = (data: boolean[]) => {
-        nozzlesCoordinates.value.map((n, i) => {
+        nozzles.value.map((n, i) => {
             if (data[i] === undefined) return n
 
             n.fire = data[i]
@@ -34,7 +37,7 @@ export const useHead = (_printbar = 0, _position = 0) => {
     }
 
     const reset = () => {
-        nozzlesCoordinates.value = generateNozzlesCoordinates(_printbar, _position)
+        nozzles.value = generateNozzles(_printbar, _position)
     }
 
     const rotatePoint = (
@@ -53,10 +56,10 @@ export const useHead = (_printbar = 0, _position = 0) => {
 
     
 
-    return {nozzlesCoordinates, adjustStitch, _position, rotate, reset, setJetsFiring }
+    return {nozzles, getNozzles, adjustStitch, _position, rotate, reset, setJetsFiring }
 }
 
-const generateNozzlesCoordinates = (_printbar: number, _position: number): nozzle[] => {
+const generateNozzles = (_printbar: number, _position: number): nozzle[] => {
     let coordinates: nozzle[] = [];
 
     const nozzleMask = generateNozzleMask();

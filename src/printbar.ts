@@ -11,7 +11,7 @@ export const usePrintbar = (_number = 0, _numberOfHeads = 2) => {
         (_i, _k) => useHead(number.value, _k)
     )
 
-    const getNozzles = computed(() => heads.flatMap((h) => h.nozzlesCoordinates.value))
+    const getNozzles = computed(() => heads.flatMap((h) => [...h.getNozzles.value]))
 
     /**
      * Return nozzles nearby the coordinates within precision
