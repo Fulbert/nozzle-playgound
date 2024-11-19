@@ -13,7 +13,7 @@ export default defineConfig({
       },
       eslint: {
         useFlatConfig: true,
-        lintCommand: 'eslint "./**/*.{js,ts,mjs,cjs,vue}"',
+        lintCommand: 'eslint "./src/**/*.{js,ts,mjs,cjs,vue}"',
       }})
     ],
 })
