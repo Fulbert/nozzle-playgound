@@ -5,7 +5,7 @@ import {useCanvas} from '../canvas'
  * Import methods and state used for canvas from composable
  * printer is imported for troubleshooting purpose (Vue plugin inpection)
  */
-const { wheel, moveStart, moveEnd, dragOver, drop, printer} = useCanvas()
+const { wheel, moveStart, moveEnd, dragOver, drop} = useCanvas()
 
 </script>
 
