@@ -13,7 +13,8 @@ export const useHead = (_printbar = 0, _position = 0) => {
 
   // rotate nozzle coordinates
   const rotate = (alpha: number) => {
-    nozzles.value = nozzles.value.map((c) => {
+    const rawNozzles = [...toRaw(nozzles.value)];
+    nozzles.value = rawNozzles.map((c) => {
       const point = rotatePoint([c.x, c.y], alpha);
       c.x = point[0];
       c.y = point[1];
