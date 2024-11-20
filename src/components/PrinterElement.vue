@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useCanvas } from "../canvas";
+import { useCanvas } from '../canvas';
 
 /**
  * Import methods and state used for canvas from composable

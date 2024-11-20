@@ -1,9 +1,9 @@
-import { decode, TiffIfd } from "tiff";
-import { computed, ref, toRaw } from "vue";
-import { printbar, usePrintbar } from "./printbar";
-import { head, nozzle } from "./head";
-import { pixelSize } from "./constants";
-import { coord } from "./canvas";
+import { decode, TiffIfd } from 'tiff';
+import { computed, ref, toRaw } from 'vue';
+import { printbar, usePrintbar } from './printbar';
+import { head, nozzle } from './head';
+import { pixelSize } from './constants';
+import { coord } from './canvas';
 
 /**
  * Create a printer composable
@@ -167,7 +167,28 @@ export const usePrinter = (_numberOfPrintbars = 1, _numberOfHeads = 2) => {
     return printbars[closeNozzle.printbar].heads[closeNozzle.head];
   };
 
-  return { printbars, drops, loadTiff, getClosestNozzle, getClosestHead };
+  const handleEvent = (ev: MouseEvent | TouchEvent | WheelEvent) => {
+    if (isTouchEvent(ev)) {
+      console.log('touched');
+    } else {
+      console.log('mouse event');
+    }
+  };
+
+  const isTouchEvent = (
+    ev: MouseEvent | TouchEvent | WheelEvent,
+  ): ev is TouchEvent => {
+    return ev.type === 'TouchEvent';
+  };
+
+  return {
+    printbars,
+    drops,
+    loadTiff,
+    getClosestNozzle,
+    getClosestHead,
+    handleEvent,
+  };
 };
 
 // A drop share the same properties than a nozzle

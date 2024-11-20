@@ -1,6 +1,6 @@
-import { computed, ref } from "vue";
-import { nozzle, useHead } from "./head";
-import { colors } from "./constants";
+import { computed, ref } from 'vue';
+import { nozzle, useHead } from './head';
+import { colors } from './constants';
 
 export const usePrintbar = (_number = 0, _numberOfHeads = 2) => {
   const number = ref(_number);

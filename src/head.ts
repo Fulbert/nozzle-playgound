@@ -1,5 +1,5 @@
-import { computed, ref, toRaw } from "vue";
-import * as k from "./constants.ts";
+import { computed, ref, toRaw } from 'vue';
+import * as k from './constants.ts';
 
 export const useHead = (_printbar = 0, _position = 0) => {
   const nozzles = ref<nozzle[]>(generateNozzles(_printbar, _position));

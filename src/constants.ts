@@ -19,4 +19,4 @@ export const skew = 1.3123; // mm
 export const skewPerNozzle = skew / 68 / 32;
 export const gap = 2.6458;
 
-export const colors = ["cyan", "yellow"];
+export const colors = ['cyan', 'yellow'];

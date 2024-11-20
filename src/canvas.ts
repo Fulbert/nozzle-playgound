@@ -1,7 +1,7 @@
-import { ref, onMounted, watchEffect } from "vue";
-import { usePrinter, drop } from "./printer";
-import { printbar } from "./printbar";
-import { head, nozzle } from "./head";
+import { ref, onMounted, watchEffect } from 'vue';
+import { usePrinter, drop } from './printer';
+import { printbar } from './printbar';
+import { head, nozzle } from './head';
 
 /**
  * Display a printer in a canvas element
@@ -11,7 +11,7 @@ import { head, nozzle } from "./head";
  * @returns
  */
 export const useCanvas = (
-  _canvasId = "printerCanvas",
+  _canvasId = 'printerCanvas',
   _printer = usePrinter(),
 ) => {
   // Deconstruc _printer parameter with methods and states to use in canvas
@@ -45,7 +45,7 @@ export const useCanvas = (
     canvas.value = document.getElementById(canvasId.value) as HTMLCanvasElement;
     if (canvas.value === null) return;
 
-    context.value = canvas.value.getContext("2d");
+    context.value = canvas.value.getContext('2d');
     if (context.value === null) return;
 
     canvas.value.width = window.innerWidth;
@@ -114,7 +114,7 @@ export const useCanvas = (
     const ctx = context.value;
 
     ctx.beginPath();
-    ctx.fillStyle = "black";
+    ctx.fillStyle = 'black';
     ctx.arc(
       nozzle.x * zoom.value + offset.value[0],
       nozzle.y * zoom.value + offset.value[1],
